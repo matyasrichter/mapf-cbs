@@ -7,7 +7,7 @@
     <artifactId>mapf</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>graph</module>
+        <module>domain</module>
         <module>parser</module>
     </modules>
     <packaging>pom</packaging>
