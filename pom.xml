@@ -9,6 +9,7 @@
     <modules>
         <module>domain</module>
         <module>parser</module>
+        <module>solver</module>
     </modules>
     <packaging>pom</packaging>
 

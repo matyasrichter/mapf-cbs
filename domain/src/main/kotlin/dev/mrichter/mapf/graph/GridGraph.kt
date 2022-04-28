@@ -5,7 +5,14 @@ enum class TileType {
     WALL,
 }
 
-data class Coordinates(val x: Int, val y: Int)
+fun TileType.isAccessible(): Boolean = when (this) {
+    TileType.EMPTY -> true
+    TileType.WALL -> false
+}
+
+data class Coordinates(val x: Int, val y: Int) {
+    operator fun plus(offset: Coordinates) = Coordinates(x + offset.x, y + offset.y)
+}
 
 class GridGraph(private val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType> {
     init {
@@ -15,7 +22,18 @@ class GridGraph(private val tiles: Array<Array<TileType>>) : Graph<Coordinates, 
         check(tiles.all { it.size == tiles[0].size })
     }
 
-    override fun at(coordinates: Coordinates): TileType = tiles[coordinates.y][coordinates.x]
+    private val offsets =
+        listOf(Coordinates(1, 0), Coordinates(0, 1), Coordinates(-1, 0), Coordinates(0, -1))
+
+    override fun at(coordinates: Coordinates): TileType {
+        if (coordinates.x < 0 || coordinates.y < 0 || coordinates.y > tiles.size || coordinates.x > tiles[0].size)
+            return TileType.WALL
+        return tiles[coordinates.y][coordinates.x]
+    }
+
+    override fun neighbours(coordinates: Coordinates): List<Coordinates> =
+        offsets.map { offset -> coordinates + offset }.filter { c -> at(c).isAccessible() }
+
 
     override fun toString() = "Maze(tiles=${tiles[0].size}x${tiles.size})"
     override fun equals(other: Any?): Boolean {
