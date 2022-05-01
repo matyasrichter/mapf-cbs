@@ -1,5 +1,7 @@
 package dev.mrichter.mapf.graph
 
+import kotlin.math.abs
+
 enum class TileType {
     EMPTY,
     WALL,
@@ -12,6 +14,10 @@ fun TileType.isAccessible(): Boolean = when (this) {
 
 data class Coordinates(val x: Int, val y: Int) {
     operator fun plus(offset: Coordinates) = Coordinates(x + offset.x, y + offset.y)
+}
+
+fun manhattanDistance(from: Coordinates, to: Coordinates): Double {
+    return (abs(from.x - to.x) + abs(from.y - to.y)).toDouble()
 }
 
 class GridGraph(private val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType> {
