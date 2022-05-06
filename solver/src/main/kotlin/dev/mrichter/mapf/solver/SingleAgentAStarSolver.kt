@@ -1,44 +1,46 @@
 package dev.mrichter.mapf.solver
 
+import dev.mrichter.mapf.graph.Agent
 import dev.mrichter.mapf.graph.Graph
 import java.util.*
 
 class SingleAgentAStarSolver<CoordinatesType>(
     val graph: Graph<CoordinatesType, *>,
-    val constraints: ConstraintTable<CoordinatesType>,
-    val distanceMetric: (CoordinatesType, CoordinatesType) -> Double,
+    val distanceMetric: (CoordinatesType, CoordinatesType) -> Int,
 ) : SingleAgentSolver<CoordinatesType> {
     override fun solve(
-        agentId: UUID,
+        agent: Agent<CoordinatesType>,
         initialTimestep: Int,
-        start: CoordinatesType,
-        target: CoordinatesType
+        vertexConstraints: Set<VertexConstraint<CoordinatesType>>,
+        edgeConstraints: Set<EdgeConstraint<CoordinatesType>>,
     ): Result<List<CoordinatesType>> {
         val pathMap = HashMap<CoordinatesType, CoordinatesType>()
         // shortest path currently known from start to node
-        val gScore = mutableMapOf(Pair(start, 0.0)).withDefault { Double.POSITIVE_INFINITY }
+        val gScore = mutableMapOf(Pair(agent.start, 0)).withDefault { Int.MAX_VALUE }
         // current best estimate through a node
-        val fScore = mutableMapOf(Pair(start, distanceMetric(start, target))).withDefault { Double.POSITIVE_INFINITY }
+        val fScore =
+            mutableMapOf(Pair(agent.start, distanceMetric(agent.start, agent.target))).withDefault { Int.MAX_VALUE }
         val queue =
             PriorityQueue { l: CoordinatesType, r: CoordinatesType ->
                 if (fScore.getValue(l) > fScore.getValue(r)) 1 else -1
             }
-        queue.add(start)
-        val queueSteps = mutableMapOf(Pair(start, initialTimestep))
+        queue.add(agent.start)
+        val queueSteps = mutableMapOf(Pair(agent.start, initialTimestep))
         while (!queue.isEmpty()) {
             val curr = queue.remove()
-            if (curr == target)
-                return Result.success(reconstructPath(pathMap, target))
+            if (curr == agent.target)
+                return Result.success(reconstructPath(pathMap, agent.target))
             val currStep = queueSteps.remove(curr)!!
             graph.neighbours(curr).filter {
-                constraints.canMoveTo(it, currStep + 1, agentId) && constraints.canMoveTo(it, currStep, agentId)
+                !vertexConstraints.contains(Triple(it, currStep + 1, agent.id))
+                        && !edgeConstraints.contains(Triple(Pair(curr, it), currStep, agent.id))
             }.forEach {
                 val possibleScore = gScore.getValue(curr) + distanceMetric(curr, it)
                 if (possibleScore <= gScore.getValue(it)) {
                     queue.remove(it)
                     pathMap[it] = curr
                     gScore[it] = possibleScore
-                    fScore[it] = possibleScore + distanceMetric(it, target)
+                    fScore[it] = possibleScore + distanceMetric(it, agent.target)
                     queue.add(it)
                     queueSteps[it] = currStep + 1
                 }

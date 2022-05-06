@@ -16,8 +16,8 @@ data class Coordinates(val x: Int, val y: Int) {
     operator fun plus(offset: Coordinates) = Coordinates(x + offset.x, y + offset.y)
 }
 
-fun manhattanDistance(from: Coordinates, to: Coordinates): Double {
-    return (abs(from.x - to.x) + abs(from.y - to.y)).toDouble()
+fun manhattanDistance(from: Coordinates, to: Coordinates): Int {
+    return (abs(from.x - to.x) + abs(from.y - to.y))
 }
 
 class GridGraph(private val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType> {
