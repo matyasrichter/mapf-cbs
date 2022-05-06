@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class MovingAITextGridParserTest {
     @Test
-    fun testParserOk() {
+    fun `Parses a valid map`() {
         val data = """
             type octile
             height 4
@@ -32,7 +32,7 @@ class MovingAITextGridParserTest {
     }
 
     @Test
-    fun testParserInvalidType() {
+    fun `Fails for invalid map type`() {
         val data = """
             type someothertype
             height 4
@@ -47,7 +47,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserInvalidHeightHeader() {
+    fun `Fails for invalid height header value`() {
         val data = """
             type octile
             height a
@@ -62,7 +62,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserInvalidWidthHeader() {
+    fun `Fails for invalid width header value`() {
         val data = """
             type octile
             height 4
@@ -77,7 +77,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserMissingMapStart() {
+    fun `Fails when map start is missing`() {
         val data = """
             type octile
             height 4
@@ -91,7 +91,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserInvalidTile() {
+    fun `Fails for invalid tile type`() {
         val data = """
             type octile
             height 4
@@ -106,7 +106,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserInvalidLineWidth() {
+    fun `Fails when not all lines are of the same width`() {
         val data = """
             type octile
             height 4
@@ -121,7 +121,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserNotEnoughLines() {
+    fun `Fails when height header and actual height differ (less lines)`() {
         val data = """
             type octile
             height 4
@@ -135,7 +135,7 @@ class MovingAITextGridParserTest {
         assertFailsWith<ParseError> { parser.parse() }
     }
     @Test
-    fun testParserTooManyLines() {
+    fun `Fails when height header and actual height differ (more lines)`() {
         val data = """
             type octile
             height 4
