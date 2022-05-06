@@ -48,7 +48,7 @@ class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, Grid
                     }
                 }.toTypedArray()
                 if (lines[lineCount].size != expWidth) throw ParseError("Invalid grid dimensions (line $lineCount length must be $expWidth)")
-                ++lineCount;
+                ++lineCount
             }
             if (lineCount < expHeight) throw ParseError("Invalid grid dimensions: not enough lines (expected $expHeight)")
             return lines

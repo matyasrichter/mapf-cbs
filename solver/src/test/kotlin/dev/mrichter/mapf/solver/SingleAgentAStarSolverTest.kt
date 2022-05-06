@@ -1,9 +1,10 @@
 package dev.mrichter.mapf.solver
 
 import dev.mrichter.mapf.graph.*
-import org.junit.Test
 import java.util.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SingleAgentAStarSolverTest {

@@ -1,8 +1,8 @@
 package dev.mrichter.mapf.solver
 
 import dev.mrichter.mapf.graph.*
-import org.junit.Test
-import java.util.UUID
+import java.util.*
+import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -36,8 +36,7 @@ class CTSolverTest {
                 listOf(
                     listOf(Coordinates(1, 1), Coordinates(2, 1), Coordinates(3, 1)),
                     listOf(Coordinates(1, 3), Coordinates(2, 3), Coordinates(3, 3))
-                ),
-                it.solution
+                ), it.solution
             )
         }
     }
@@ -95,11 +94,51 @@ class CTSolverTest {
     fun `Solves an instance with forced waiting`() {
         val graph = GridGraph(
             arrayOf(
-                arrayOf(TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL),
-                arrayOf(TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.WALL),
-                arrayOf(TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.EMPTY, TileType.WALL),
-                arrayOf(TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.WALL, TileType.EMPTY, TileType.EMPTY, TileType.WALL),
-                arrayOf(TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL, TileType.WALL),
+                arrayOf(
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL
+                ),
+                arrayOf(
+                    TileType.WALL,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.WALL,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.WALL
+                ),
+                arrayOf(
+                    TileType.WALL,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.WALL
+                ),
+                arrayOf(
+                    TileType.WALL,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.WALL,
+                    TileType.EMPTY,
+                    TileType.EMPTY,
+                    TileType.WALL
+                ),
+                arrayOf(
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL,
+                    TileType.WALL
+                ),
             )
         )
         val solver = CTSolver(
@@ -139,10 +178,10 @@ class CTSolverTest {
         val solution = solver.solve(
             listOf(
                 Agent(UUID.randomUUID(), Coordinates(1, 1), Coordinates(4, 1)),
-                Agent(UUID.randomUUID(), Coordinates(4, 8), Coordinates(1,3)),
-                Agent(UUID.randomUUID(), Coordinates(1,8), Coordinates(2,1)),
-                Agent(UUID.randomUUID(), Coordinates(1,4), Coordinates(4,3)),
-                Agent(UUID.randomUUID(), Coordinates(2,1), Coordinates(2,7)),
+                Agent(UUID.randomUUID(), Coordinates(4, 8), Coordinates(1, 3)),
+                Agent(UUID.randomUUID(), Coordinates(1, 8), Coordinates(2, 1)),
+                Agent(UUID.randomUUID(), Coordinates(1, 4), Coordinates(4, 3)),
+                Agent(UUID.randomUUID(), Coordinates(2, 1), Coordinates(2, 7)),
             )
         )
         assertTrue { solution.isSuccess }

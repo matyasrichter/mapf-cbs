@@ -46,6 +46,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails for invalid height header value`() {
         val data = """
@@ -61,6 +62,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails for invalid width header value`() {
         val data = """
@@ -76,6 +78,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails when map start is missing`() {
         val data = """
@@ -90,6 +93,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails for invalid tile type`() {
         val data = """
@@ -105,6 +109,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails when not all lines are of the same width`() {
         val data = """
@@ -120,6 +125,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails when height header and actual height differ (less lines)`() {
         val data = """
@@ -134,6 +140,7 @@ class MovingAITextGridParserTest {
         val parser = MovingAITextGridParser(data.reader().buffered())
         assertFailsWith<ParseError> { parser.parse() }
     }
+
     @Test
     fun `Fails when height header and actual height differ (more lines)`() {
         val data = """

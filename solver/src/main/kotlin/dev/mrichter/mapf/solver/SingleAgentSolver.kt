@@ -22,7 +22,7 @@ internal fun <CoordinatesType> reconstructPath(
     node: CoordinatesType
 ): List<CoordinatesType> {
     var path = listOf(node)
-    var current = node;
+    var current = node
     while (pathMap.containsKey(current)) {
         current = pathMap[current]!!
         path = listOf(current) + path
