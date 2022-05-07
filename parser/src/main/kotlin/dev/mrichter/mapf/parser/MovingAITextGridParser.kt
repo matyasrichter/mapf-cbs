@@ -43,6 +43,7 @@ class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, Grid
                 lines[lineCount] = line.trim().map { char ->
                     when (char) {
                         '.' -> TileType.EMPTY
+                        'T' -> TileType.WALL
                         '@' -> TileType.WALL
                         else -> throw ParseError("Invalid tile")
                     }

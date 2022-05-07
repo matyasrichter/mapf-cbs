@@ -14,7 +14,7 @@ class SingleAgentAStarSolver<CoordinatesType>(
         vertexConstraints: Set<VertexConstraint<CoordinatesType>>,
         edgeConstraints: Set<EdgeConstraint<CoordinatesType>>,
     ): Result<List<CoordinatesType>> {
-        val pathMap = HashMap<CoordinatesType, CoordinatesType>()
+        val pathMap = HashMap<Pair<CoordinatesType, Int>, CoordinatesType>()
         // shortest path currently known from start to node
         val gScore = mutableMapOf(Pair(agent.start, 0)).withDefault { Int.MAX_VALUE }
         // current best estimate through a node
@@ -28,9 +28,9 @@ class SingleAgentAStarSolver<CoordinatesType>(
         val queueSteps = mutableMapOf(Pair(agent.start, initialTimestep))
         while (!queue.isEmpty()) {
             val curr = queue.remove()
-            if (curr == agent.target)
-                return Result.success(reconstructPath(pathMap, agent.target))
             val currStep = queueSteps.remove(curr)!!
+            if (curr == agent.target)
+                return Result.success(reconstructPath(pathMap, Pair(agent.target, currStep)))
             graph.neighbours(curr).filter {
                 !vertexConstraints.contains(Triple(it, currStep + 1, agent.id))
                         && !edgeConstraints.contains(Triple(Pair(curr, it), currStep, agent.id))
@@ -38,7 +38,7 @@ class SingleAgentAStarSolver<CoordinatesType>(
                 val possibleScore = gScore.getValue(curr) + distanceMetric(curr, it)
                 if (possibleScore <= gScore.getValue(it)) {
                     queue.remove(it)
-                    pathMap[it] = curr
+                    pathMap[Pair(it, currStep + 1)] = curr
                     gScore[it] = possibleScore
                     fScore[it] = possibleScore + distanceMetric(it, agent.target)
                     queue.add(it)

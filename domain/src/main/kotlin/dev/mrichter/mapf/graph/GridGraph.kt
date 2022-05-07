@@ -20,7 +20,7 @@ fun manhattanDistance(from: Coordinates, to: Coordinates): Int {
     return (abs(from.x - to.x) + abs(from.y - to.y))
 }
 
-class GridGraph(private val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType> {
+class GridGraph(val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType> {
     init {
         check(tiles.isNotEmpty())
         check(tiles[0].isNotEmpty())

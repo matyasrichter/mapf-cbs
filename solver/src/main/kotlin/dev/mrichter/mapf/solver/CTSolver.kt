@@ -19,7 +19,19 @@ data class Conflict<CoordinatesType>(
 )
 
 fun <E> Iterable<E>.updated(index: Int, elem: E) = mapIndexed { i, existing -> if (i == index) elem else existing }
-
+fun <E> Iterable<E>.zipLongest(other: Iterable<E>) = sequence {
+    val a = iterator()
+    val b = other.iterator()
+    while (a.hasNext() && b.hasNext()) {
+        yield(Pair(a.next(), b.next()))
+    }
+    while (a.hasNext()) {
+        yield(Pair(a.next(), other.last()))
+    }
+    while (b.hasNext()) {
+        yield(Pair(last(), b.next()))
+    }
+}
 
 class CTSolver<CoordinatesType>(
     val singleAgentSolver: SingleAgentSolver<CoordinatesType>,
@@ -44,7 +56,7 @@ class CTSolver<CoordinatesType>(
                 val (bIndex, b) = bPair
                 sequence {
                     // check for vertex conflicts first
-                    a.zip(b).withIndex().forEach {
+                    a.zipLongest(b).withIndex().forEach {
                         val (coordA, coordB) = it.value
                         if (coordA == coordB) {
                             yield(Pair(Triple(coordA, it.index, agents[aIndex].id), aIndex))

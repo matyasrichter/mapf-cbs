@@ -18,14 +18,15 @@ interface SingleAgentSolver<CoordinatesType> {
 }
 
 internal fun <CoordinatesType> reconstructPath(
-    pathMap: Map<CoordinatesType, CoordinatesType>,
-    node: CoordinatesType
+    pathMap: Map<Pair<CoordinatesType, Int>, CoordinatesType>,
+    target: Pair<CoordinatesType, Int>,
 ): List<CoordinatesType> {
-    var path = listOf(node)
-    var current = node
+    var path = listOf(target.first)
+    var current = target
     while (pathMap.containsKey(current)) {
-        current = pathMap[current]!!
-        path = listOf(current) + path
+        val prevCoords = pathMap[current]!!
+        path = listOf(prevCoords) + path
+        current = Pair(prevCoords, current.second - 1)
     }
     return path
 }
