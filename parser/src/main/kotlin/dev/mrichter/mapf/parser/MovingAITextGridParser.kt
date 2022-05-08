@@ -6,15 +6,18 @@ import java.io.BufferedReader
 import java.io.IOException
 
 class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, GridGraph>(data) {
-    override fun parse(): GridGraph {
-        val (expWidth, expHeight) = parseHeader()
-        return GridGraph(parseMap(expWidth, expHeight))
-    }
+    override fun parse(): Result<GridGraph> =
+        parseHeader()
+            .map { (expWidth, expHeight) -> parseMap(expWidth, expHeight) }
+            .fold(
+                onSuccess = { it.map { tiles -> GridGraph(tiles) } },
+                onFailure = { Result.failure(it) }
+            )
 
     /**
      * Process the header, returning a (width x height) pair
      */
-    private fun parseHeader(): Pair<Int, Int> {
+    private fun parseHeader(): Result<Pair<Int, Int>> {
         try {
 
             if (data.readLine().trim() != "type octile") throw ParseError("Invalid grid type")
@@ -27,14 +30,13 @@ class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, Grid
                 throw ParseError("Invalid grid dimensions header")
             }
             if (data.readLine().trim() != "map") throw ParseError("Missing map start")
-            return Pair(expWidth, expHeight)
+            return Result.success(Pair(expWidth, expHeight))
         } catch (e: IOException) {
-            // iterator exhausted
-            throw ParseError("Unexpected end-of-file when parsing grid header.")
+            return Result.failure(ParseError("Unexpected end-of-file when parsing grid header."))
         }
     }
 
-    private fun parseMap(expWidth: Int, expHeight: Int): Array<Array<TileType>> {
+    private fun parseMap(expWidth: Int, expHeight: Int): Result<Array<Array<TileType>>> {
         try {
             val lines = Array(size = expHeight) { Array(expWidth) { TileType.EMPTY } }
             var lineCount = 0
@@ -52,10 +54,9 @@ class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, Grid
                 ++lineCount
             }
             if (lineCount < expHeight) throw ParseError("Invalid grid dimensions: not enough lines (expected $expHeight)")
-            return lines
+            return Result.success(lines)
         } catch (e: IOException) {
-            // iterator exhausted
-            throw ParseError("Unexpected end-of-file. Map height should be $expHeight")
+            return Result.failure(ParseError("Unexpected end-of-file. Map height should be $expHeight"))
         }
     }
 }

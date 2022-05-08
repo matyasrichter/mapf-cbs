@@ -4,10 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.mrichter.mapf.graph.Coordinates
@@ -20,7 +21,7 @@ fun AgentC(tileSize: Int, agentData: AgentData) {
     Box(
         Modifier
             .offset((tileSize * position.first).dp, (tileSize * position.second).dp)
-    ){
+    ) {
         Box(
             Modifier
                 .size(tileSize.dp, tileSize.dp)
@@ -38,7 +39,7 @@ data class AgentData(
 
     fun position(): Pair<Float, Float> {
         val fromIndex = floor(tilesSinceStart).toInt()
-        if (fromIndex >= path.size -1) {
+        if (fromIndex >= path.size - 1) {
             finished = true
             return Pair(path.last().x.toFloat(), path.last().y.toFloat())
         }
@@ -54,5 +55,10 @@ data class AgentData(
     // speed in tiles per nanosecond
     fun update(delta: Long, speed: Float) {
         tilesSinceStart += (delta / speed)
+    }
+
+    fun restart() {
+        finished = false
+        tilesSinceStart = 0.0
     }
 }
