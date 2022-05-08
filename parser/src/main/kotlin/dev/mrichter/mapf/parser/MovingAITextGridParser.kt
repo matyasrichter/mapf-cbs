@@ -5,7 +5,7 @@ import dev.mrichter.mapf.graph.TileType
 import java.io.BufferedReader
 import java.io.IOException
 
-class MovingAITextGridParser(data: BufferedReader) : Parser<BufferedReader, GridGraph>(data) {
+class MovingAITextGridParser(data: BufferedReader) : MapParser<BufferedReader, GridGraph>(data) {
     override fun parse(): Result<GridGraph> =
         parseHeader()
             .map { (expWidth, expHeight) -> parseMap(expWidth, expHeight) }

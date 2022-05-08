@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class MovingAITextGridParserTest {
+class MovingAITextGridMapParserTest {
     @Test
     fun `Parses a valid map`() {
         val data = """
@@ -28,7 +28,7 @@ class MovingAITextGridParserTest {
             )
         )
         val parser = MovingAITextGridParser(data.reader().buffered())
-        assertEquals(expected, parser.parse())
+        assertEquals(expected, parser.parse().getOrNull())
     }
 
     @Test
