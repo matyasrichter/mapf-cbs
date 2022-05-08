@@ -32,7 +32,7 @@ class GridGraph(val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType
         listOf(Coordinates(1, 0), Coordinates(0, 1), Coordinates(-1, 0), Coordinates(0, -1))
 
     override fun at(coordinates: Coordinates): TileType {
-        if (coordinates.x < 0 || coordinates.y < 0 || coordinates.y > tiles.size || coordinates.x > tiles[0].size)
+        if (coordinates.x < 0 || coordinates.y < 0 || coordinates.y >= tiles.size || coordinates.x >= tiles[0].size)
             return TileType.WALL
         return tiles[coordinates.y][coordinates.x]
     }
