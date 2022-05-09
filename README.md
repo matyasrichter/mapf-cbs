@@ -38,7 +38,7 @@ with the associated benchmarks with tens to hundreds of agents.
 Full benchmarks (i.e. all 1000 agents on the Berlin256 map) take significantly more time and would probably require
 further optimizations
 in the form of agent merging (MA-CBS [1]) or pairwise symmetry resolving [2], but these are out of the scope of this
-implementation. This is extremely prevalent when running the benchmark `random-32-32-20-even-1-2`,
+implementation. This is extremely prevalent when running the benchmark `random-32-32-20-even-1`,
 where there are several agents forced to pass each other in opposite directions in narrow corridors.
 
 When profiling the application on large instances, the clear leader in CPU time is the low-level solver,
