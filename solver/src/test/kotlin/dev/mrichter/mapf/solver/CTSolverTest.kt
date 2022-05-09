@@ -31,7 +31,7 @@ class CTSolverTest {
         assertTrue { solution.isSuccess }
         solution.onSuccess {
             assertEquals(6, it.cost)
-            assertTrue { it.vertexConstraints.isEmpty() }
+            assertTrue { it.vertexConstraint == null }
             assertContentEquals(
                 listOf(
                     listOf(Coordinates(1, 1), Coordinates(2, 1), Coordinates(3, 1)),

@@ -35,8 +35,8 @@ class SingleAgentAStarSolver<CT>(
             closed.add(curr)
             open.remove(curr)
             graph.neighbours(curr.coordinates).filter {
-                !vertexConstraints.contains(Triple(it, curr.timestep + 1, agent.id))
-                        && !edgeConstraints.contains(Triple(Pair(curr.coordinates, it), curr.timestep, agent.id))
+                !vertexConstraints.contains(Pair(it, curr.timestep + 1))
+                        && !edgeConstraints.contains(Pair(Pair(curr.coordinates, it), curr.timestep))
             }.forEach {
                 val next = State(
                     it,

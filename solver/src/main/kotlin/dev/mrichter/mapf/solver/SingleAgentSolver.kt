@@ -5,8 +5,8 @@ import java.util.*
 
 class NotSolvable(message: String) : Exception(message)
 
-typealias VertexConstraint<CoordinatesType> = Triple<CoordinatesType, Int, UUID>
-typealias EdgeConstraint<CoordinatesType> = Triple<Pair<CoordinatesType, CoordinatesType>, Int, UUID>
+typealias VertexConstraint<CoordinatesType> = Pair<CoordinatesType, Int>
+typealias EdgeConstraint<CoordinatesType> = Pair<Pair<CoordinatesType, CoordinatesType>, Int>
 
 interface SingleAgentSolver<CoordinatesType> {
     fun solve(
