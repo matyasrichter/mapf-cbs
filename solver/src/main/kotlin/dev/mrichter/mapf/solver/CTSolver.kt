@@ -136,43 +136,6 @@ class CTSolver<CT>(
         return emptySequence()
     }
 
-//    private fun getFirstVertexConflict(
-//        node: ConstraintTreeNode<CT>, agents: List<Agent<CT>>
-//    ): Pair<Pair<VertexConstraint<CT>, Int>, Pair<VertexConstraint<CT>, Int>>? {
-//        makePathPairs(node).forEach { (aPair, bPair) ->
-//            val (aIndex, a) = aPair
-//            val (bIndex, b) = bPair
-//            a.zipLongest(b).withIndex().forEach {
-//                val (coordA, coordB) = it.value
-//                if (coordA == coordB) return Pair(
-//                    Pair(Triple(coordA, it.index, agents[aIndex].id), aIndex),
-//                    Pair(Triple(coordB, it.index, agents[bIndex].id), bIndex),
-//                )
-//
-//            }
-//        }
-//        return null
-//    }
-//
-//    private fun getFirstEdgeConflict(
-//        node: ConstraintTreeNode<CT>, agents: List<Agent<CT>>
-//    ): Pair<Pair<EdgeConstraint<CT>, Int>, Pair<EdgeConstraint<CT>, Int>>? {
-//        makePathPairs(node).forEach { (aPair, bPair) ->
-//            val (aIndex, a) = aPair
-//            val (bIndex, b) = bPair
-//            for (n1 in 1 until a.size - 1) {
-//                if (n1 >= b.size) break
-//                val n0 = n1 - 1
-//                if (a[n0] == b[n1] && b[n0] == a[n1]) return Pair(
-//                    Pair(Triple(Pair(a[n0], a[n1]), n0, agents[aIndex].id), aIndex),
-//                    Pair(Triple(Pair(b[n0], b[n1]), n0, agents[bIndex].id), bIndex)
-//                )
-//            }
-//        }
-//        return null
-//    }
-
-
     private fun createNode(
         agents: List<Agent<CT>>,
         index: Int,
