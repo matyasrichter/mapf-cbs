@@ -6,27 +6,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
-import dev.mrichter.mapf.graph.Agent
-import dev.mrichter.mapf.graph.Coordinates
-import dev.mrichter.mapf.graph.GridGraph
-import dev.mrichter.mapf.graph.manhattanDistance
-import dev.mrichter.mapf.parser.MovingAITextGridParser
-import dev.mrichter.mapf.solver.CTSolver
-import dev.mrichter.mapf.solver.SingleAgentAStarSolver
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.math.min
-
 
 
 @Composable
 @Preview
 fun MapfVisualiser(maps: List<Choice>) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    var appState by remember { mutableStateOf<AppState>(ChoosingMap(snackbarHostState)) }
+    var appState by remember { mutableStateOf<AppState>(ChoosingMap()) }
 
     val tileSize = remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
@@ -77,7 +66,7 @@ fun MapfVisualiser(maps: List<Choice>) {
                 ) {
                     Column {
                         Row {
-                            NumericField("Start X", state.tmpStartX){
+                            NumericField("Start X", state.tmpStartX) {
                                 state.tmpStartX = it
                             }
                             NumericField("Start Y", state.tmpStartY) {
@@ -166,23 +155,8 @@ fun MapfVisualiser(maps: List<Choice>) {
                         }
                     }
                 }
-                Box(modifier = Modifier.fillMaxWidth().fillMaxHeight().onSizeChanged {
-                    tileSize.value =
-                        min((it.width / state.graph.tiles.first().size), (it.height / state.graph.tiles.size))
-                }) {
-                    Grid(tileSize.value, state.graph)
-                    state.solution.value.map { AgentC(tileSize.value, it) }
-                }
-                state.start()
-                LaunchedEffect(Unit) {
-                    while (true) {
-                        withFrameNanos {
-                            if (!state.paused && !state.finished) state.update(it)
-                        }
-                    }
-                }
+                SolutionAnimation(tileSize, state)
             }
         }
-        SnackbarHost(hostState = snackbarHostState)
     }
 }

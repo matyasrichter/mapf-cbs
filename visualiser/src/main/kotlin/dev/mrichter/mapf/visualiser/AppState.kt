@@ -1,6 +1,5 @@
 package dev.mrichter.mapf.visualiser
 
-import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,25 +18,42 @@ fun <T> Sequence<T>.repeat() = sequence { while (true) yieldAll(this@repeat) }
 
 fun getColorsSequence(): Sequence<Color> {
     return arrayOf(
-        Color.Red, Color.Blue, Color.Cyan,
-        Color.Magenta, Color.Yellow,
+        Color(230, 25, 75),
+        Color(60, 180, 75),
+        Color(255, 225, 25),
+        Color(0, 130, 200),
+        Color(245, 130, 48),
+        Color(145, 30, 180),
+        Color(70, 240, 240),
+        Color(240, 50, 230),
+        Color(210, 245, 60),
+        Color(250, 190, 212),
+        Color(0, 128, 128),
+        Color(220, 190, 255),
+        Color(170, 110, 40),
+        Color(255, 250, 200),
+        Color(128, 0, 0),
+        Color(170, 255, 195),
+        Color(128, 128, 0),
+        Color(255, 215, 180),
+        Color(0, 0, 128),
     ).asSequence().repeat()
 }
 
-sealed class AppState(val snackbarHostState: SnackbarHostState) {
+sealed class AppState() {
     abstract fun proceed(): AppState
 }
 
-class ChoosingMap(snackbarHostState: SnackbarHostState) : AppState(snackbarHostState) {
+class ChoosingMap() : AppState() {
     val graph = mutableStateOf<GridGraph?>(null)
 
     override fun proceed(): AppState {
         val g = graph.value
-        return g?.let { ChoosingAgents(snackbarHostState, g) } ?: this
+        return g?.let { ChoosingAgents(g) } ?: this
     }
 
-    suspend fun setMap(path: String) = getGraph(path).fold(onSuccess = { graph.value = it },
-        onFailure = { snackbarHostState.showSnackbar(it.message.orEmpty()) })
+    fun setMap(path: String) = getGraph(path).fold(onSuccess = { graph.value = it },
+        onFailure = { })
 
     private fun getGraph(resourceName: String): Result<GridGraph> =
         object {}.javaClass.getResourceAsStream(resourceName).asResult("Could not open map file")
@@ -45,9 +61,8 @@ class ChoosingMap(snackbarHostState: SnackbarHostState) : AppState(snackbarHostS
 }
 
 class ChoosingAgents(
-    snackbarHostState: SnackbarHostState,
     val graph: GridGraph,
-) : AppState(snackbarHostState) {
+) : AppState() {
     private val colors by mutableStateOf(getColorsSequence().iterator())
     private var nextColor by mutableStateOf(colors.next())
     var tmpStartX by mutableStateOf<Int?>(null)
@@ -63,7 +78,7 @@ class ChoosingAgents(
     fun takeNextColor() = nextColor.also { nextColor = colors.next() }
 
     override fun proceed(): AppState {
-        if (agents.isNotEmpty()) return Solving(snackbarHostState, graph, agents.map { it.first })
+        if (agents.isNotEmpty()) return Solving(graph, agents.map { it.first })
         return this
     }
 
@@ -107,38 +122,44 @@ class ChoosingAgents(
 }
 
 class Solving(
-    snackbarHostState: SnackbarHostState,
     val graph: GridGraph,
     val agents: List<Agent<Coordinates>>,
-) : AppState(snackbarHostState) {
+) : AppState() {
     override fun proceed(): AppState = CTSolver(SingleAgentAStarSolver(graph, ::manhattanDistance)).solve(agents).map {
         Solution(
-            snackbarHostState,
             graph,
             mutableStateOf(it.solution.zip(getColorsSequence().asIterable()).map { (path, color) ->
                 AgentData(color, path)
             })
         )
-    }.getOrDefault(NotSolvable(snackbarHostState))
+    }.getOrDefault(NotSolvable())
 }
 
 class NotSolvable(
-    snackbarHostState: SnackbarHostState
-) : AppState(snackbarHostState) {
-    override fun proceed(): AppState = ChoosingMap(snackbarHostState)
+
+) : AppState() {
+    override fun proceed(): AppState = ChoosingMap()
 }
 
 class Solution(
-    snackbarHostState: SnackbarHostState,
     val graph: GridGraph,
     val solution: MutableState<List<AgentData>>,
-) : AppState(snackbarHostState) {
+) : AppState() {
     private var previousTimeNanos: Long = Long.MAX_VALUE
     private var startTime = 0L
     var paused = true
     var finished = false
+    var speed by mutableStateOf(1.0)
 
-    override fun proceed(): AppState = ChoosingMap(snackbarHostState)
+    override fun proceed(): AppState = ChoosingMap()
+
+    fun speedUp() {
+        if (speed > 0.25) speed -= 0.25
+    }
+
+    fun slowDown() {
+        if (speed < 2.0) speed += 0.25
+    }
 
     fun restart() {
         paused = true
@@ -156,7 +177,7 @@ class Solution(
     fun update(nanos: Long) {
         val dt = (nanos - previousTimeNanos).coerceAtLeast(0)
         previousTimeNanos = nanos
-        solution.value.forEach { it.update(dt, (1 / 10E-9).toFloat()) }
+        solution.value.forEach { it.update(dt, (speed / 10E-9).toFloat()) }
         finished = (solution.value.all { it.finished })
     }
 }

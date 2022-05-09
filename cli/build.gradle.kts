@@ -8,5 +8,6 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":parser"))
     implementation(project(":solver"))
+    implementation(project(":visualiser"))
     testImplementation(kotlin("test"))
 }
