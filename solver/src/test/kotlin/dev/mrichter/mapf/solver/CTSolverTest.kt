@@ -152,7 +152,7 @@ class CTSolverTest {
         )
         assertTrue { solution.isSuccess }
         solution.onSuccess {
-            assertEquals(14, it.cost)
+            assertEquals(17, it.cost)
         }
     }
 

@@ -4,48 +4,66 @@ import dev.mrichter.mapf.graph.Agent
 import dev.mrichter.mapf.graph.Graph
 import java.util.*
 
-class SingleAgentAStarSolver<CoordinatesType>(
-    val graph: Graph<CoordinatesType, *>,
-    val distanceMetric: (CoordinatesType, CoordinatesType) -> Int,
-) : SingleAgentSolver<CoordinatesType> {
+data class State<CT>(
+    val coordinates: CT,
+    val timestep: Int,
+    // path length from start
+    val gScore: Int,
+    // total path estimate
+    val fScore: Int
+)
+
+class SingleAgentAStarSolver<CT>(
+    val graph: Graph<CT, *>,
+    val distanceMetric: (CT, CT) -> Int,
+) : SingleAgentSolver<CT> {
     override fun solve(
-        agent: Agent<CoordinatesType>,
+        agent: Agent<CT>,
         initialTimestep: Int,
-        vertexConstraints: Set<VertexConstraint<CoordinatesType>>,
-        edgeConstraints: Set<EdgeConstraint<CoordinatesType>>,
-    ): Result<List<CoordinatesType>> {
-        val pathMap = HashMap<Pair<CoordinatesType, Int>, CoordinatesType>()
-        // shortest path currently known from start to node
-        val gScore = mutableMapOf(Pair(agent.start, 0)).withDefault { Int.MAX_VALUE }
-        // current best estimate through a node
-        val fScore =
-            mutableMapOf(Pair(agent.start, distanceMetric(agent.start, agent.target))).withDefault { Int.MAX_VALUE }
-        val queue =
-            PriorityQueue { l: CoordinatesType, r: CoordinatesType ->
-                if (fScore.getValue(l) > fScore.getValue(r)) 1 else -1
-            }
-        queue.add(agent.start)
-        val queueSteps = mutableMapOf(Pair(agent.start, initialTimestep))
+        vertexConstraints: Set<VertexConstraint<CT>>,
+        edgeConstraints: Set<EdgeConstraint<CT>>,
+    ): Result<List<CT>> {
+        val pathMap = HashMap<State<CT>, State<CT>>()
+        val closed = hashSetOf<State<CT>>()
+        val open = hashSetOf<State<CT>>()
+        val queue = PriorityQueue(compareBy<State<CT>> { it.fScore }.thenBy { it.timestep })
+        queue.add(State(agent.start, initialTimestep, 0, distanceMetric(agent.start, agent.target)))
         while (!queue.isEmpty()) {
             val curr = queue.remove()
-            val currStep = queueSteps.remove(curr)!!
-            if (curr == agent.target)
-                return Result.success(reconstructPath(pathMap, Pair(agent.target, currStep)))
-            graph.neighbours(curr).filter {
-                !vertexConstraints.contains(Triple(it, currStep + 1, agent.id))
-                        && !edgeConstraints.contains(Triple(Pair(curr, it), currStep, agent.id))
+            if (curr.coordinates == agent.target)
+                return Result.success(reconstructPath(pathMap, curr))
+            closed.add(curr)
+            open.remove(curr)
+            graph.neighbours(curr.coordinates).filter {
+                !vertexConstraints.contains(Triple(it, curr.timestep + 1, agent.id))
+                        && !edgeConstraints.contains(Triple(Pair(curr.coordinates, it), curr.timestep, agent.id))
             }.forEach {
-                val possibleScore = gScore.getValue(curr) + distanceMetric(curr, it)
-                if (possibleScore <= gScore.getValue(it)) {
-                    queue.remove(it)
-                    pathMap[Pair(it, currStep + 1)] = curr
-                    gScore[it] = possibleScore
-                    fScore[it] = possibleScore + distanceMetric(it, agent.target)
-                    queue.add(it)
-                    queueSteps[it] = currStep + 1
+                val next = State(
+                    it,
+                    curr.timestep + 1,
+                    curr.gScore + 1,
+                    curr.gScore + 1 + distanceMetric(it, agent.target)
+                )
+                if (next.timestep < graph.size() && !closed.contains(next) && !open.contains(next)) {
+                    pathMap[next] = curr
+                    queue.add(next)
+                    open.add(next)
                 }
             }
         }
         return Result.failure(NotSolvable(""))
+    }
+
+    private fun <CT> reconstructPath(
+        pathMap: Map<State<CT>, State<CT>>,
+        target: State<CT>,
+    ): List<CT> {
+        var path = listOf(target.coordinates)
+        var current = target
+        while (pathMap.containsKey(current)) {
+            current = pathMap[current]!!
+            path = listOf(current.coordinates) + path
+        }
+        return path
     }
 }

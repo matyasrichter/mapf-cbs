@@ -38,8 +38,9 @@ class GridGraph(val tiles: Array<Array<TileType>>) : Graph<Coordinates, TileType
     }
 
     override fun neighbours(coordinates: Coordinates): List<Coordinates> =
-        offsets.map { offset -> coordinates + offset }.filter { c -> at(c).isAccessible() }
+        offsets.map { offset -> coordinates + offset }.filter { c -> at(c).isAccessible() } + listOf(coordinates)
 
+    override fun size(): Int = tiles.size * tiles[0].size
 
     override fun toString() = "Maze(tiles=${tiles[0].size}x${tiles.size})"
     override fun equals(other: Any?): Boolean {

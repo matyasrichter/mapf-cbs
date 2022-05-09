@@ -3,19 +3,11 @@ package dev.mrichter.mapf.solver
 import dev.mrichter.mapf.graph.Agent
 import java.util.*
 
-class ConstraintTreeNode<CoordinatesType>(
-    val vertexConstraints: Set<VertexConstraint<CoordinatesType>>,
-    val edgeConstraints: Set<EdgeConstraint<CoordinatesType>>,
-    val solution: List<List<CoordinatesType>>,
+class ConstraintTreeNode<CT>(
+    val vertexConstraints: Set<VertexConstraint<CT>>,
+    val edgeConstraints: Set<EdgeConstraint<CT>>,
+    val solution: List<List<CT>>,
     val cost: Int
-)
-
-data class Conflict<CoordinatesType>(
-    val aIndex: Int,
-    val bIndex: Int,
-    val timestep: Int,
-    val aCoordinates: CoordinatesType,
-    val bCoordinates: CoordinatesType,
 )
 
 fun <E> Iterable<E>.updated(index: Int, elem: E) = mapIndexed { i, existing -> if (i == index) elem else existing }
@@ -32,41 +24,28 @@ fun <E> Iterable<E>.zipLongest(other: Iterable<E>) = sequence {
         yield(Pair(last(), b.next()))
     }
 }
+//todo 4.2.3. Resolving a conflict
 
-class CTSolver<CoordinatesType>(
-    val singleAgentSolver: SingleAgentSolver<CoordinatesType>,
+class CTSolver<CT>(
+    val singleAgentSolver: SingleAgentSolver<CT>,
 ) {
-    fun solve(agents: List<Agent<CoordinatesType>>): Result<ConstraintTreeNode<CoordinatesType>> {
-        val open = PriorityQueue<ConstraintTreeNode<CoordinatesType>> { l, r -> l.cost.compareTo(r.cost) }
+    fun solve(agents: List<Agent<CT>>): Result<ConstraintTreeNode<CT>> {
+        val open =
+            PriorityQueue(compareBy<ConstraintTreeNode<CT>> { it.cost }.thenBy { it.vertexConstraints.size + it.edgeConstraints.size })
         val root = createRootNode(agents)
         root.onSuccess { open.add(it) }
+        var totalNodes = 0
         while (!open.isEmpty()) {
             val curr = open.remove()
+            totalNodes++
             var final = true
-            getFirstVertexConflict(curr, agents)?.let { conflict ->
-                val (constraint, index) = conflict
-                createNode(
-                    agents, index, curr.vertexConstraints + constraint, curr.edgeConstraints, curr.solution
-                ).onSuccess { node ->
-                    open.add(node)
-                    final = false
-                }
-            }
-            getFirstEdgeConflict(curr, agents)?.let { conflict ->
-                val (constraint, index) = conflict
-                createNode(
-                    agents, index, curr.vertexConstraints, curr.edgeConstraints + constraint, curr.solution
-                ).onSuccess {
-                    open.add(it)
-                    final = false
-                }
-            }
+            createChildren(curr, agents).forEach { open.add(it); final = false }
             if (final) return Result.success(curr)
         }
         return Result.failure(NotSolvable("Instance is not solvable"))
     }
 
-    private fun makePathPairs(node: ConstraintTreeNode<CoordinatesType>) = sequence {
+    private fun makePathPairs(node: ConstraintTreeNode<CT>) = sequence {
         node.solution.forEachIndexed { indexA, a ->
             node.solution.withIndex().drop(indexA + 1).forEach { (indexB, b) ->
                 yield(Pair(Pair(indexA, a), Pair(indexB, b)))
@@ -74,50 +53,133 @@ class CTSolver<CoordinatesType>(
         }
     }
 
-    private fun getFirstVertexConflict(
-        node: ConstraintTreeNode<CoordinatesType>, agents: List<Agent<CoordinatesType>>
-    ) = makePathPairs(node).map { (aPair, bPair) ->
-        val (aIndex, a) = aPair
-        val (bIndex, b) = bPair
-        sequence {
-            // check for vertex conflicts first
-            a.zipLongest(b).withIndex().forEach {
-                val (coordA, coordB) = it.value
-                if (coordA == coordB) {
-                    yield(Pair(Triple(coordA, it.index, agents[aIndex].id), aIndex))
-                    yield(Pair(Triple(coordB, it.index, agents[bIndex].id), bIndex))
-                }
-            }
+    private fun createChildren(
+        node: ConstraintTreeNode<CT>, agents: List<Agent<CT>>
+    ): Sequence<ConstraintTreeNode<CT>> {
+        val iterators = node.solution.map { it.iterator() }.withIndex()
+        val mapNextOrLast = { its: Iterable<IndexedValue<Iterator<CT>>> ->
+            its.map { (index, it) -> if (it.hasNext()) it.next() else node.solution[index].last() }
         }
-    }.flatten().firstOrNull()
+        var n0 = mapNextOrLast(iterators)
+        var step = 0
 
-    private fun getFirstEdgeConflict(
-        node: ConstraintTreeNode<CoordinatesType>, agents: List<Agent<CoordinatesType>>
-    ) = makePathPairs(node).map { (aPair, bPair) ->
-        val (aIndex, a) = aPair
-        val (bIndex, b) = bPair
-        sequence {
-            // zip two paths with the same paths offset by 1
-            a.zip(b).withIndex().zip(a.zip(b).drop(1)).forEach { (it_n0, it_n1) ->
-                // timestep n
-                val (a0, b0) = it_n0.value
-                // timestep n+1
-                val (a1, b1) = it_n1
-                if (a0 == b1 && b0 == a1) {
-                    yield(Pair(Triple(Pair(a0, a1), it_n0.index, agents[aIndex].id), aIndex))
-                    yield(Pair(Triple(Pair(b0, b1), it_n0.index, agents[bIndex].id), bIndex))
+        while (iterators.any { (_, it) -> it.hasNext() }) {
+            val n1 = mapNextOrLast(iterators)
+            for (indexA in n0.indices) {
+                for (indexB in indexA + 1 until node.solution.size) {
+                    if (n0[indexA] == n0[indexB]) {
+                        return sequence {
+                            if (step < node.solution[indexA].size) {
+                                createNode(
+                                    agents,
+                                    indexA,
+                                    node.vertexConstraints + Triple(n0[indexA], step, agents[indexA].id),
+                                    node.edgeConstraints,
+                                    node.solution
+                                ).onSuccess {
+                                    yield(it)
+                                }
+                            }
+                            if (step < node.solution[indexB].size) {
+                                createNode(
+                                    agents,
+                                    indexB,
+                                    node.vertexConstraints + Triple(n0[indexB], step, agents[indexB].id),
+                                    node.edgeConstraints,
+                                    node.solution
+                                ).onSuccess {
+                                    yield(it)
+                                }
+                            }
+                        }
+                    }
+                    if (n0[indexA] == n1[indexB] && n0[indexB] == n1[indexA]) {
+                        return sequence {
+                            if (step < node.solution[indexA].size) {
+
+                                createNode(
+                                    agents,
+                                    indexA,
+                                    node.vertexConstraints,
+                                    node.edgeConstraints + Triple(
+                                        Pair(n0[indexA], n1[indexA]),
+                                        step,
+                                        agents[indexA].id
+                                    ),
+                                    node.solution,
+                                ).onSuccess {
+                                    yield(it)
+                                }
+                            }
+                            if (step < node.solution[indexB].size) {
+                                createNode(
+                                    agents,
+                                    indexB,
+                                    node.vertexConstraints,
+                                    node.edgeConstraints + Triple(
+                                        Pair(n0[indexB], n1[indexB]),
+                                        step,
+                                        agents[indexB].id
+                                    ),
+                                    node.solution,
+                                ).onSuccess {
+                                    yield(it)
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            n0 = n1
+            step++
         }
-    }.flatten().firstOrNull()
+        return emptySequence()
+    }
+
+//    private fun getFirstVertexConflict(
+//        node: ConstraintTreeNode<CT>, agents: List<Agent<CT>>
+//    ): Pair<Pair<VertexConstraint<CT>, Int>, Pair<VertexConstraint<CT>, Int>>? {
+//        makePathPairs(node).forEach { (aPair, bPair) ->
+//            val (aIndex, a) = aPair
+//            val (bIndex, b) = bPair
+//            a.zipLongest(b).withIndex().forEach {
+//                val (coordA, coordB) = it.value
+//                if (coordA == coordB) return Pair(
+//                    Pair(Triple(coordA, it.index, agents[aIndex].id), aIndex),
+//                    Pair(Triple(coordB, it.index, agents[bIndex].id), bIndex),
+//                )
+//
+//            }
+//        }
+//        return null
+//    }
+//
+//    private fun getFirstEdgeConflict(
+//        node: ConstraintTreeNode<CT>, agents: List<Agent<CT>>
+//    ): Pair<Pair<EdgeConstraint<CT>, Int>, Pair<EdgeConstraint<CT>, Int>>? {
+//        makePathPairs(node).forEach { (aPair, bPair) ->
+//            val (aIndex, a) = aPair
+//            val (bIndex, b) = bPair
+//            for (n1 in 1 until a.size - 1) {
+//                if (n1 >= b.size) break
+//                val n0 = n1 - 1
+//                if (a[n0] == b[n1] && b[n0] == a[n1]) return Pair(
+//                    Pair(Triple(Pair(a[n0], a[n1]), n0, agents[aIndex].id), aIndex),
+//                    Pair(Triple(Pair(b[n0], b[n1]), n0, agents[bIndex].id), bIndex)
+//                )
+//            }
+//        }
+//        return null
+//    }
+
 
     private fun createNode(
-        agents: List<Agent<CoordinatesType>>,
+        agents: List<Agent<CT>>,
         index: Int,
-        vertexConstraints: Set<VertexConstraint<CoordinatesType>>,
-        edgeConstraints: Set<EdgeConstraint<CoordinatesType>>,
-        previousSolution: List<List<CoordinatesType>>
-    ): Result<ConstraintTreeNode<CoordinatesType>> {
+        vertexConstraints: Set<VertexConstraint<CT>>,
+        edgeConstraints: Set<EdgeConstraint<CT>>,
+        previousSolution: List<List<CT>>
+    ): Result<ConstraintTreeNode<CT>> {
         return singleAgentSolver.solve(agents[index], 0, vertexConstraints, edgeConstraints).map {
             val newSolutionSet = previousSolution.updated(index, it)
             ConstraintTreeNode(vertexConstraints,
@@ -127,8 +189,8 @@ class CTSolver<CoordinatesType>(
         }
     }
 
-    private fun createRootNode(agents: List<Agent<CoordinatesType>>): Result<ConstraintTreeNode<CoordinatesType>> {
-        val solution: List<List<CoordinatesType>>
+    private fun createRootNode(agents: List<Agent<CT>>): Result<ConstraintTreeNode<CT>> {
+        val solution: List<List<CT>>
         try {
             val raw = agents.map {
                 singleAgentSolver.solve(it, 0, setOf(), setOf()).getOrThrow()

@@ -111,7 +111,7 @@ class SingleAgentAStarSolverTest {
         val solver = SingleAgentAStarSolver(graph, ::manhattanDistance)
         val result = solver.solve(Agent(uuid, Coordinates(1, 1), Coordinates(3, 3)), 0, vConstraints, setOf())
         assertTrue { result.isSuccess }
-        assertEquals(7, result.getOrThrow().size)
+        assertEquals(6, result.getOrThrow().size)
     }
 
     @Test
@@ -132,6 +132,6 @@ class SingleAgentAStarSolverTest {
         val solver = SingleAgentAStarSolver(graph, ::manhattanDistance)
         val result = solver.solve(Agent(uuid, Coordinates(1, 1), Coordinates(3, 3)), 0, setOf(), eConstraints)
         assertTrue { result.isSuccess }
-        assertEquals(7, result.getOrThrow().size)
+        assertEquals(6, result.getOrThrow().size)
     }
 }
