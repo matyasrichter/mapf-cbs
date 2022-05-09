@@ -45,10 +45,6 @@ more specifically its priority queue operations.
 The total time could therefore be reduced by limiting the number of evaluated nodes of the high-level tree, which would
 make the low-level search run fewer times in total.
 
-Though not supported by rigorous testing, running some of the MovingAI benchmarks,
-we can observe better performance for maps with many obstacles, such as the _random64x64_ map, compared to
-the open space city maps _Berlin_, _Boston_ and _Paris_. This matches the A* vs. CBS comparison described in [1].
-
 ## Components
 
 - The `domain` module contains definitions of domain entities like `Graph` and `Agent`
