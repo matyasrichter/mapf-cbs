@@ -69,6 +69,7 @@ Use the `-g` flag for graphics output.
 [1]: Sharon, G.; Stern, R.; Felner, A.; et al. Conflict-based search for optimal multi-agent pathfinding.
 Artificial Intelligence, volume 219, 2015: pp. 40–66.
 Available at: https://doi.org/10.1016/j.artint.2014.11.006
+
 [2]: Li, Jiaoyang and Harabor, Daniel and Stuckey, Peter J. and Koenig, Sven;
 Pairwise Symmetry Reasoning for Multi-Agent Path Finding Search. arXiv, 2021.
 Available at: https://doi.org/10.48550/arXiv.2103.07116
