@@ -1,5 +1,10 @@
 plugins {
+    application
     kotlin("jvm")
+}
+
+application {
+    mainClass.set("dev.mrichter.mapf.cli.MainKt")
 }
 
 description = "cli"

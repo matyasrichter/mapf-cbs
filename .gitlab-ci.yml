@@ -10,6 +10,9 @@ before_script:
 build:
   stage: build
   script: gradle --build-cache assemble
+  artifacts:
+    paths:
+      - "cli/build/distributions/*"
   cache:
     key: "$CI_COMMIT_REF_NAME"
     policy: push
