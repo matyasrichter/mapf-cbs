@@ -30,7 +30,7 @@ class ConstraintTreeNode<CT>(
         }
     }
 
-    fun depth(): Int = parent?.depth()?.inc() ?: 0
+    val depth: Int = parent?.depth?.inc() ?: 0
 }
 
 fun <E> Iterable<E>.updated(index: Int, elem: E) = mapIndexed { i, existing -> if (i == index) elem else existing }
@@ -53,7 +53,7 @@ class CTSolver<CT>(
 ) {
     fun solve(agents: List<Agent<CT>>): Result<ConstraintTreeNode<CT>> {
         val open =
-            PriorityQueue(compareBy<ConstraintTreeNode<CT>> { it.cost }.thenBy { it.depth() })
+            PriorityQueue(compareBy<ConstraintTreeNode<CT>> { it.cost }.thenBy { it.depth })
         val root = createRootNode(agents)
         root.onSuccess { open.add(it) }
         var totalNodes = 0
