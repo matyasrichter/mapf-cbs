@@ -1,10 +1,7 @@
 package dev.mrichter.mapf.parser
 
-import dev.mrichter.mapf.graph.Agent
 import dev.mrichter.mapf.graph.Coordinates
-import java.util.*
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

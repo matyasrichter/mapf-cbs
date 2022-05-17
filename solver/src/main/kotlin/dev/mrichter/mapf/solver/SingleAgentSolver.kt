@@ -1,7 +1,6 @@
 package dev.mrichter.mapf.solver
 
 import dev.mrichter.mapf.graph.Agent
-import java.util.*
 
 class NotSolvable(message: String) : Exception(message)
 
